@@ -38,6 +38,11 @@ namespace {
 const std::string kIpcKey = "ipcNative";
 const std::string kModuleCacheKey = "native-module-cache";
 
+struct DummyClass { bool crash; };
+
+void Crash() {
+  static_cast<DummyClass*>(nullptr)->crash = true;
+}
 
 v8::Local<v8::Object> GetModuleCache(v8::Isolate* isolate) {
   mate::Dictionary global(isolate, isolate->GetCurrentContext()->Global());
@@ -85,6 +90,7 @@ void InitializeBindings(v8::Local<v8::Object> binding,
   auto isolate = context->GetIsolate();
   mate::Dictionary b(isolate, binding);
   b.SetMethod("get", GetBinding);
+  b.SetMethod("crash", Crash);
 }
 
 class AtomSandboxedRenderFrameObserver : public content::RenderFrameObserver {
