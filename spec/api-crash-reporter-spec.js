@@ -13,138 +13,138 @@ const {app, BrowserWindow, crashReporter} = remote.require('electron')
 const fixtures = path.resolve(__dirname, 'fixtures')
 
 const generateSpecs = (describePrefix, browserWindowOpts) => {
-describe(describePrefix + 'crashReporter module', function () {
-  var w = null
-  var originalTempDirectory = null
-  var tempDirectory = null
+  describe(describePrefix + 'crashReporter module', function () {
+    var w = null
+    var originalTempDirectory = null
+    var tempDirectory = null
 
-  beforeEach(function () {
-    w = new BrowserWindow(Object.assign({
-      show: false
-    }, browserWindowOpts))
-    w.webContents.openDevTools({mode: 'detach'})
-    tempDirectory = temp.mkdirSync('electronCrashReporterSpec-')
-    originalTempDirectory = app.getPath('temp')
-    app.setPath('temp', tempDirectory)
-  })
-
-  afterEach(function () {
-    app.setPath('temp', originalTempDirectory)
-    return closeWindow(w).then(function () { w = null })
-  })
-
-  if (process.mas) {
-    return
-  }
-
-  it('should send minidump when renderer crashes', function (done) {
-    if (process.env.APPVEYOR === 'True') return done()
-    if (process.env.TRAVIS === 'true') return done()
-
-    this.timeout(120000)
-
-    startServer({
-      callback (port) {
-        const crashUrl = url.format({
-          protocol: 'file',
-          pathname: path.join(fixtures, 'api', 'crash.html'),
-          search: '?port=' + port
-        })
-        w.loadURL(crashUrl)
-      },
-      processType: 'renderer',
-      done: done
-    })
-  })
-
-  it('should send minidump when node processes crash', function (done) {
-    if (process.env.APPVEYOR === 'True') return done()
-    if (process.env.TRAVIS === 'true') return done()
-
-    this.timeout(120000)
-
-    startServer({
-      callback (port) {
-        const crashesDir = path.join(app.getPath('temp'), `${app.getName()} Crashes`)
-        const version = app.getVersion()
-        const crashPath = path.join(fixtures, 'module', 'crash.js')
-        childProcess.fork(crashPath, [port, version, crashesDir], {silent: true})
-      },
-      processType: 'browser',
-      done: done
-    })
-  })
-
-  it('should send minidump with updated extra parameters', function (done) {
-    if (process.env.APPVEYOR === 'True') return done()
-    if (process.env.TRAVIS === 'true') return done()
-
-    this.timeout(10000)
-
-    startServer({
-      callback (port) {
-        const crashUrl = url.format({
-          protocol: 'file',
-          pathname: path.join(fixtures, 'api', 'crash-restart.html'),
-          search: '?port=' + port
-        })
-        w.loadURL(crashUrl)
-      },
-      processType: 'renderer',
-      done: done
-    })
-  })
-
-  describe('.start(options)', function () {
-    it('requires that the companyName and submitURL options be specified', function () {
-      assert.throws(function () {
-        crashReporter.start({
-          companyName: 'Missing submitURL'
-        })
-      }, /submitURL is a required option to crashReporter\.start/)
-      assert.throws(function () {
-        crashReporter.start({
-          submitURL: 'Missing companyName'
-        })
-      }, /companyName is a required option to crashReporter\.start/)
+    beforeEach(function () {
+      w = new BrowserWindow(Object.assign({
+        show: false
+      }, browserWindowOpts))
+      w.webContents.openDevTools({mode: 'detach'})
+      tempDirectory = temp.mkdirSync('electronCrashReporterSpec-')
+      originalTempDirectory = app.getPath('temp')
+      app.setPath('temp', tempDirectory)
     })
 
-    it('can be called multiple times', function () {
-      assert.doesNotThrow(function () {
-        crashReporter.start({
-          companyName: 'Umbrella Corporation',
-          submitURL: 'http://127.0.0.1/crashes'
-        })
+    afterEach(function () {
+      app.setPath('temp', originalTempDirectory)
+      return closeWindow(w).then(function () { w = null })
+    })
 
-        crashReporter.start({
-          companyName: 'Umbrella Corporation 2',
-          submitURL: 'http://127.0.0.1/more-crashes'
+    if (process.mas) {
+      return
+    }
+
+    it('should send minidump when renderer crashes', function (done) {
+      if (process.env.APPVEYOR === 'True') return done()
+      if (process.env.TRAVIS === 'true') return done()
+
+      this.timeout(120000)
+
+      startServer({
+        callback (port) {
+          const crashUrl = url.format({
+            protocol: 'file',
+            pathname: path.join(fixtures, 'api', 'crash.html'),
+            search: '?port=' + port
+          })
+          w.loadURL(crashUrl)
+        },
+        processType: 'renderer',
+        done: done
+      })
+    })
+
+    it('should send minidump when node processes crash', function (done) {
+      if (process.env.APPVEYOR === 'True') return done()
+      if (process.env.TRAVIS === 'true') return done()
+
+      this.timeout(120000)
+
+      startServer({
+        callback (port) {
+          const crashesDir = path.join(app.getPath('temp'), `${app.getName()} Crashes`)
+          const version = app.getVersion()
+          const crashPath = path.join(fixtures, 'module', 'crash.js')
+          childProcess.fork(crashPath, [port, version, crashesDir], {silent: true})
+        },
+        processType: 'browser',
+        done: done
+      })
+    })
+
+    it('should send minidump with updated extra parameters', function (done) {
+      if (process.env.APPVEYOR === 'True') return done()
+      if (process.env.TRAVIS === 'true') return done()
+
+      this.timeout(10000)
+
+      startServer({
+        callback (port) {
+          const crashUrl = url.format({
+            protocol: 'file',
+            pathname: path.join(fixtures, 'api', 'crash-restart.html'),
+            search: '?port=' + port
+          })
+          w.loadURL(crashUrl)
+        },
+        processType: 'renderer',
+        done: done
+      })
+    })
+
+    describe('.start(options)', function () {
+      it('requires that the companyName and submitURL options be specified', function () {
+        assert.throws(function () {
+          crashReporter.start({
+            companyName: 'Missing submitURL'
+          })
+        }, /submitURL is a required option to crashReporter\.start/)
+        assert.throws(function () {
+          crashReporter.start({
+            submitURL: 'Missing companyName'
+          })
+        }, /companyName is a required option to crashReporter\.start/)
+      })
+
+      it('can be called multiple times', function () {
+        assert.doesNotThrow(function () {
+          crashReporter.start({
+            companyName: 'Umbrella Corporation',
+            submitURL: 'http://127.0.0.1/crashes'
+          })
+
+          crashReporter.start({
+            companyName: 'Umbrella Corporation 2',
+            submitURL: 'http://127.0.0.1/more-crashes'
+          })
         })
       })
     })
-  })
 
-  describe('.get/setUploadToServer', function () {
-    it('throws an error when called from the renderer process', function () {
-      assert.throws(() => require('electron').crashReporter.getUploadToServer())
-    })
+    describe('.get/setUploadToServer', function () {
+      it('throws an error when called from the renderer process', function () {
+        assert.throws(() => require('electron').crashReporter.getUploadToServer())
+      })
 
-    it('can be read/set from the main process', function () {
-      if (process.platform === 'darwin') {
-        crashReporter.start({
-          companyName: 'Umbrella Corporation',
-          submitURL: 'http://127.0.0.1/crashes',
-          uploadToServer: true
-        })
-        assert.equal(crashReporter.getUploadToServer(), true)
-        crashReporter.setUploadToServer(false)
-        assert.equal(crashReporter.getUploadToServer(), false)
-      } else {
-        assert.equal(crashReporter.getUploadToServer(), true)
-      }
+      it('can be read/set from the main process', function () {
+        if (process.platform === 'darwin') {
+          crashReporter.start({
+            companyName: 'Umbrella Corporation',
+            submitURL: 'http://127.0.0.1/crashes',
+            uploadToServer: true
+          })
+          assert.equal(crashReporter.getUploadToServer(), true)
+          crashReporter.setUploadToServer(false)
+          assert.equal(crashReporter.getUploadToServer(), false)
+        } else {
+          assert.equal(crashReporter.getUploadToServer(), true)
+        }
+      })
     })
   })
-})
 }
 
 const waitForCrashReport = () => {
